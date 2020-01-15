@@ -3,6 +3,9 @@ language: bash
 services:
  - docker
 
+git:
+ submodules: false
+
 jobs:
  include:
   - stage: Base
@@ -21,11 +24,18 @@ jobs:
   - stage: Applications
     name: FSL
     env: DFILE=apps/fsl/Dockerfile.libmath.fsl DIMAGE=ubuntu14.04-libmath-fsl
+  - name: AFNI
+    env: DFILE=apps/afni/Dockerfile.libmath.afni DIMAGE=ubuntu14.04-libmath-afni
+
 
 script:
  - ./fuzzy/build/login.sh 
  - ./fuzzy/build/build.sh ${DFILE} ${DIMAGE}
+ # - travis_wait 30 ./fuzzy/build/build.sh ${DFILE} ${DIMAGE}
  
 # Publish early stages always, only publish applications when we have a new tag (temporary)
+# - if [ "$TRAVIS_TAG" != "" ] || [ "$TRAVIS_BUILD_STAGE_NAME" != "App" ]; then ./fuzzy/build/push.sh ${DIMAGE}; fi
+
+# Publish always after success
 after_script:
-  - if [ "$TRAVIS_TAG" != "" ] || [ "$TRAVIS_BUILD_STAGE_NAME" != "App" ]; then ./fuzzy/build/push.sh ${DIMAGE}; fi
+  - ./fuzzy/build/push.sh ${DIMAGE}
